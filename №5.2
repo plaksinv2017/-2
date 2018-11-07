@@ -1,0 +1,45 @@
+/*Дан массив неотрицательных целых 64-битных чисел.
+Количество чисел не больше 1000000.
+Отсортировать массив методом поразрядной сортировки LSD по байтам.*/
+#include <iostream>
+#include <vector>
+
+typedef unsigned long long ull;
+typedef unsigned char uc;
+
+void CountingSortPocket(std::vector<ull> &a, int i)
+{
+    std::vector<int> c(256);
+    int sum = 0;
+    int n = a.size(), k = 0;
+    for(int j = 0; j < n; ++j)
+        ++c[uc(a[j] >> (i << 3))];
+    for(int j = 0; j < 256; ++j)
+    {
+        int tmp = c[j];
+        c[j] = sum;
+        sum += tmp;
+    }
+    std::vector<ull> b(n);
+    for(int j = 0; j < n; j++)
+        b[c[uc(a[j] >> (i << 3))]++] = a[j];
+    std::copy(b.begin(), b.end(), a.begin());
+}
+
+void LSD(std::vector<ull> &a)
+{
+    for(int i = 0; i < sizeof(ull); ++i)
+        CountingSortPocket(a,i);
+}
+
+int main()
+{
+    int n;
+    std::cin >> n;
+    std::vector<ull> a(n);
+    for(int i = 0; i < n; ++i)
+        std::cin >> a[i];
+    LSD(a);
+    for(int i = 0; i < n; ++i)
+        std::cout << a[i] << ' ';
+}
