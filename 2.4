@@ -1,0 +1,148 @@
+/*На числовой прямой окрасили N отрезков.
+Известны координаты левого и правого концов каждого отрезка [Li, Ri].
+Найти сумму длин частей числовой прямой, окрашенных ровно в один слой.
+N ≤ 10000. Li, Ri — целые числа в диапазоне [0, 109].*/
+#include <iostream>
+#include <vector>
+#include <cmath>
+
+class binary_heap //в разных частях программы данная структура интерпретируется как куча или как массив
+{
+    std::vector<int> buffer;
+    int heapsize; //Pазмер кучи. Если buffer на данный момент не является кучей, heapsize = 0.
+    void SiftDown(int);
+    void SiftUp(int);
+public:
+    binary_heap() = default; //конструктор
+    void pushback(int); //дописывает элемент в конец массива
+    int num();
+    int el(int); //возвращает элемент по номеру
+    void BuildHeap();
+    int ExtractMax(); //извлекает максимум из кучи
+    void Add(int); //добавляет элемент в кучу
+    void HeapSort(); //превращает кучу в отсортированный по возрастанию массив
+    void out(); //выводит массив
+    ~binary_heap() = default;
+};
+
+void binary_heap::SiftDown(int index)
+{
+    int left = 2 * index + 1;
+    int right = 2 * index + 2;
+    int biggest = index;
+//все значения в SiftUp и SiftDown берутся по модулю,
+//чтобы концы отрезков были отсортированы независимо от того, являются они начальными или конечными.
+    if (left < heapsize && std::abs(buffer[left]) > std::abs(buffer[index]))
+        biggest = left;
+    if (right < heapsize && std::abs(buffer[right]) > std::abs(buffer[biggest]))
+        biggest = right;
+    if (biggest != index)
+    {
+        std::swap(buffer[index], buffer[biggest]);
+        SiftDown(biggest);
+    }
+}
+
+void binary_heap::pushback(int x)
+{
+    buffer.push_back(x);
+}
+
+int binary_heap::el(int index)
+{
+    return buffer[index];
+}
+
+int binary_heap::num()
+{
+    return buffer.size();
+}
+
+void binary_heap::BuildHeap()
+{
+    heapsize = buffer.size();
+    for(int i = heapsize / 2 - 1; i >= 0; --i)
+        SiftDown(i);
+}
+
+void binary_heap::SiftUp(int index)
+{
+    while (index > 0)
+    {
+        int parent = (index - 1) / 2;
+        if (std::abs(buffer[index]) <= std::abs(buffer[parent]));
+            return;
+        std::swap(buffer[index], buffer[parent]);
+        index = parent;
+    }
+}
+
+void binary_heap::Add(int element)
+{
+    buffer.push_back(element);
+    ++heapsize;
+    SiftUp(heapsize - 1);
+}
+
+int binary_heap::ExtractMax()
+{
+    int result = buffer[0];
+    buffer[0] = buffer[heapsize - 1];
+    --heapsize;
+    if (heapsize > 0)
+        SiftDown(0);
+    return result;
+}
+
+void binary_heap::HeapSort()
+{
+    while (heapsize > 0)
+        buffer[heapsize - 1] = ExtractMax();
+}
+
+void binary_heap::out()
+{
+    int buffersize = buffer.size();
+    for(int i = 0; i < buffersize; i++)
+        std::cout << buffer[i] << ' ';
+}
+
+int solve(binary_heap &a)
+{
+    a.BuildHeap();
+    a.HeapSort();
+    int i = 0, n = a.num();
+    int kol = 0, ans = 0; //kol - счетчик количества отрезков
+    while (i < n)
+    {
+        int j = i;
+        while (j < n && std::abs(a.el(i)) == std::abs(a.el(j)))
+        {
+            if (a.el(j) > 0)
+                ++kol;
+            else
+                --kol;
+            ++j;
+        }
+        if (kol == 1)
+            ans += std::abs(a.el(j)) - std::abs(a.el(i));
+        i = j;
+    }
+    return ans;
+}
+
+int main()
+{
+    int n,x;
+    std::cin >> n;
+    binary_heap a;
+    for(int i = 0; i < n; i++)
+    {
+        std::cin >> x;
+        a.pushback(x + 1); //единицу прибавляем, чтобы все значения были строго положительными
+        std::cin >> x;
+        a.pushback(- x - 1); //если отрезок начинается в точке, значение в куче будет больше 0, иначе меньше 0.
+    }
+    std::cout << solve(a);
+    return 0;
+}
