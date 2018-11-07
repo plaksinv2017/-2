@@ -1,0 +1,128 @@
+/*Дан массив целых чисел в диапазоне [0..10^9].
+Размер массива кратен 10 и ограничен сверху значением 2.5 * 10^7 элементов.
+Все значения массива являются элементами псевдо-рандомной последовательности.
+Необходимо отсортировать элементы массива за минимальное время
+и вывести каждый десятый элемент отсортированной последовательности.
+Реализуйте сортировку, основанную на QuickSort.
+Минимальный набор оптимизаций, который необходимо реализовать:
+1. Оптимизация ввода/вывода
+2. Оптимизация выбора опорного элемента
+3. Оптимизация Partition
+4. Написать без рекурсии
+5. Оптимизация концевой рекурсии*/
+
+#include <iostream>
+#include <vector>
+#include <stack>
+
+int med(int a1, int b1, int c1, int a, int b, int c)
+{
+    if (a1 <= b1 && a1 <= c1)
+        return c1 <= b1 ? c : b;
+    if (b1 <= a1 && b1 <= c1)
+        return c1 <= a1 ? c : a;
+    return b1 <= a1 ? b : a;
+}
+
+void qsort(std::vector<int> &a, int n)
+{
+    std::stack<std::pair<int,int> > order; //стек, в котором хранится порядок операций - необходимо для удаления рекурсии
+    std::pair<int,int> gr, q;
+    gr.first = 0;
+    gr.second = n - 1;
+    order.push(gr);
+    while (!order.empty())
+    {
+        gr = order.top();
+        order.pop();
+        int l = gr.first;
+        int r = gr.second;
+        if (r - l < 8) //сортировка вставками при малых значениях
+            for (int i = l + 1; i <= r; i++)
+            {
+                int j = i - 1;
+                while (j >= l && a[j] > a[j + 1])
+                {
+                    std::swap(a[j], a[j + 1]);
+                    j--;
+                }
+            }
+        else
+        {
+            int m = (r + l) / 2;
+            int pivot;
+            pivot = med(a[l], a[r], a[m], l, r, m); //выбираем медиану 3 в качестве пивота
+            std::swap(a[pivot], a[r]);
+            int i = l;
+            int j = r - 1;
+            int p = l - 1; //оптимизация partition, которая позволяет не вызывать рекурсию для элементов, равных пивоту
+            int q = r;
+            while (i <= j)
+            {
+                while (a[i] < a[r]) i++;
+                while (a[j] > a[r]) j--;
+                if (i >= j)
+                    break;
+                std::swap(a[i], a[j]);
+                if (a[i] == a[r])
+                {
+                    p++;
+                    std::swap(a[p], a[i]);
+                }
+                i++;
+                if (a[j] == a[r])
+                {
+                    q--;
+                    std::swap(a[q], a[j]);
+                }
+                j--;
+            }
+            std::swap(a[i], a[r]);
+            j = i - 1;
+            i++;
+            for(int k = l; k <= p; k++)
+            {
+                std::swap(a[k], a[j]);
+                j--;
+            }
+            for(int k = r - 1; k >= q; k--)
+            {
+                std::swap(a[k], a[i]);
+                i++;
+            }
+            if (l < j)
+            {
+                gr.first = l;
+                gr.second = j;
+                order.push(gr);
+            }
+            if (i < r)
+            {
+                gr.first = i;
+                gr.second = r;
+                order.push(gr);
+            }
+        }
+    }
+}
+
+int main()
+{
+    //оптимизация ввода и вывода
+    std::ios_base::sync_with_stdio(false);
+    std::cin.tie(0);
+    std::cout.tie(0);
+    std::vector<int> a;
+    int n = 0;
+    int N = 25000000;
+    int x;
+    while (n <= N && std::cin >> x)
+    {
+        n++;
+        a.push_back(x);
+    }
+    qsort(a,n);
+    for(int i = 9; i < n; i += 10)
+        std::cout << a[i] << ' ';
+    return 0;
+}
