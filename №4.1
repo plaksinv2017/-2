@@ -1,0 +1,66 @@
+/*Дана очень длинная последовательность целых чисел длины n.
+Требуется вывести в отсортированном виде её первые k элементов.
+Последовательность может не помещаться в память.
+Время работы O(n * log(k)). Доп. память O(k). Использовать слияние.*/
+
+#include <iostream>
+#include <vector>
+
+//создает отссортированный массив длины k из двух отсортированных частей [l1, r1) массива a и [l2, r2) массива b
+std::vector<int> Merge(std::vector<int> &a, int l1, int r1, std::vector<int> &b, int l2, int r2, int k)
+{
+    int i = l1, j = l2;
+    std::vector<int> c;
+    while (i + j < k + l1 + l2)
+        if (j == r2 || i != r1 && b[j] > a[i])
+        {
+            c.push_back(a[i]);
+            ++i;
+        }
+        else
+        {
+            c.push_back(b[j]);
+            ++j;
+        }
+    return c;
+}
+
+void MergeSort(std::vector<int> &a, int l, int r)
+{
+    if (r - l > 1)
+    {
+        MergeSort(a, l, (l + r) / 2);
+        MergeSort(a, (l + r) / 2, r);
+    }
+    std::vector<int> d = Merge(a, l, (l + r) / 2, a, (l + r) / 2, r, r - l);
+    for(int i = 0; i < r - l; ++i)
+        a[i + l] = d[i];
+}
+
+int main()
+{
+    int n, k, i = 0, x;
+    std::cin >> n >> k;
+    std::vector<int> a;
+    int r = 0; //количество элементов в a
+    std::vector<int> ans;
+    while (i < n)
+    {
+        std::cin >> x;
+        a.push_back(x);
+        ++i;
+        ++r;
+        if (i == n || r == k)
+        {
+            MergeSort(a, 0, r);
+            if (ans.size() == 0)
+                ans = a;
+            else
+                ans = Merge(ans, 0, k, a, 0, r, k);
+            a.clear();
+            r = 0;
+        }
+    }
+    for(int i = 0; i < k; ++i)
+        std::cout << ans[i] << ' ';
+}
