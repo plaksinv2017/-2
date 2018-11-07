@@ -1,0 +1,77 @@
+/*Даны неотрицательные целые числа n, k и массив целых чисел из диапазона [0..10^9] размера n.
+Требуется найти k-ю порядковую статистику.
+т.е. напечатать число, которое бы стояло на позиции с индексом k [0..n-1] в отсортированном массиве.
+Напишите нерекурсивный алгоритм.
+Требования к дополнительной памяти: O(n).
+Требуемое среднее время работы: O(n).
+Реализуйте стратегию выбора опорного элемента “медиана трёх”.
+Функцию Partition реализуйте методом прохода двумя итераторами от начала массива к концу.*/
+#include <iostream>
+
+int med(int a1, int b1, int c1, int a, int b, int c) //медиана трех
+{
+    if (a1 <= b1 && a1 <= c1)
+        return c1 <= b1 ? c : b;
+    if (b1 <= a1 && b1 <= c1)
+        return c1 <= a1 ? c : a;
+    return b1 <= a1 ? b : a;
+}
+
+/*функция возвращает пару, в которой 1 элемент = 1, если k > i, 0, eсли k = i, и -1, k < i,
+а второй элемент равен i - по эти данным можно однозначно установить промежуток, в котором мы будем искать k-ую статистику далее.*/
+std::pair <int, int> Partition(int* a, int l, int r, int k)
+{
+    int mid = (l + r) / 2;
+    int pivot = med(a[l], a[r], a[mid], l, r, mid);
+    std::swap(a[pivot], a[r]);
+    int i = l, j = l;
+    while (j < r)
+    {
+        if (a[j] <= a[r])
+        {
+            std::swap(a[i], a[j]);
+            i++;
+        }
+        j++;
+    }
+    std::swap(a[i], a[r]);
+    std::pair <int, int> p;
+    p.second = i;
+    if (i == k)
+        p.first = 0;
+    if (i < k)
+        p.first = 1;
+    if (i > k)
+        p.first = -1;
+    return p;
+}
+
+int solve(int* a, int n, int K)
+{
+    std::pair <int, int> p;
+    p.first = 1;
+    int l = 0, r = n - 1;
+    while (true)
+    {
+        p = Partition(a,l,r,K);
+        if (p.first == 0)
+            break;
+        if (p.first == 1)
+            l = p.second + 1;
+        if (p.first == -1)
+            r = p.second - 1;
+    }
+    return a[p.second];
+}
+
+int main()
+{
+    int n,k;
+    std::cin >> n >> k;
+    int* a = new int[n];
+    for(int i = 0; i < n; i++)
+        std::cin >> a[i];
+    std::cout << solve(a,n,k);
+    delete[] a;
+    return 0;
+}
